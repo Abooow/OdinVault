@@ -1,0 +1,69 @@
+<style>
+    .dialogs-wrapper {
+        position: absolute;
+        z-index: 1000;
+    }
+</style>
+
+<CascadingValue Value="this" IsFixed>
+    <div class="dialogs-wrapper">
+        @foreach (var dialogInstance in dialogs)
+        {
+            <CascadingValue @key="dialogInstance" Value="dialogInstance" IsFixed>
+                <DynamicComponent Type="dialogInstance.DialogType" Parameters="dialogInstance.Parameters" />
+            </CascadingValue>
+        }
+    </div>
+
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    public bool DialogOpen => dialogs.Count > 0;
+
+    public event Action<DialogInstance, bool>? OnDialogChanged;
+    
+    private readonly Dictionary<DialogInstance, TaskCompletionSource<DialogResult>> dialogResults = [];
+    private readonly List<DialogInstance> dialogs = [];
+
+    public DialogInstance Show<T>(string? title = null, DialogOptions? options = null)
+        where T : IComponent
+    {
+        return Show<T>([], title, options);
+    }
+
+    public DialogInstance Show<T>(Dictionary<string, object?> parameters, string? title = null, DialogOptions? options = null)
+        where T : IComponent
+    {
+        var completionSource = new TaskCompletionSource<DialogResult>();
+
+        var instance = new DialogInstance(this, options ?? new(), completionSource.Task, typeof(T))
+        {
+            Title = title,
+            Parameters = new(parameters)
+        };
+        dialogs.Add(instance);
+        dialogResults[instance] = completionSource;
+
+        StateHasChanged();
+        OnDialogChanged?.Invoke(instance, true);
+
+        return instance;
+    }
+
+    public void Close(DialogInstance dialog, DialogResult result)
+    {
+        if (dialogs.Remove(dialog))
+        {
+            var completionSource = dialogResults[dialog];
+            dialogResults.Remove(dialog);
+            completionSource.SetResult(result);
+            
+            StateHasChanged();
+            OnDialogChanged?.Invoke(dialog, false);
+        }
+    }
+}

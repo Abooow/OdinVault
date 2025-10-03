@@ -1,0 +1,57 @@
+@inherits DialogBase
+
+<div class="dialog-backdrop" @onmouseup="BackdropClicked">
+    <div class="dialog" style="width: @(Width)px; height: @(Height)px;" role="dialog" @onmouseup:stopPropagation="true">
+        @if (TitleContent is not null)
+        {
+            <div class="dialog-title">
+                @TitleContent
+            </div>
+        }
+        else if (DialogInstance!.Title is not null)
+        {
+            <div class="dialog-title">
+                <h1>@DialogInstance.Title</h1>
+            </div>
+        }
+
+        @if (DialogContent is not null)
+        {
+            <div class="dialog-content-wrapper">
+                <div class="dialog-content">
+                    @DialogContent
+                </div>
+            </div>
+        }
+
+        @if (DialogActions is not null)
+        {
+            <div class="dialog-actions">
+                @DialogActions
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? DialogContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? DialogActions { get; set; }
+
+    [Parameter]
+    public int? Width { get; set; }
+
+    [Parameter]
+    public int? Height { get; set; }
+
+    private void BackdropClicked()
+    {
+        if (!DialogInstance!.Options.DisableBackdropClick)
+            DialogInstance.Cancel();
+    }
+}

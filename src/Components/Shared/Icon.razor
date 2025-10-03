@@ -1,0 +1,14 @@
+<svg viewBox="0 0 24 24" fill="none" style="width: 1em; height: 1em; display: inline-block; fill: @Color; font-size: @(Size)px;" color="@Color" xmlns="http://www.w3.org/2000/svg">
+    @((MarkupString)Path)
+</svg>
+
+@code {
+    [Parameter]
+    public required string Path { get; set; }
+
+    [Parameter]
+    public string Color { get; set; } = "white";
+
+    [Parameter]
+    public int Size { get; set; } = 24;
+}

@@ -1,0 +1,118 @@
+<style>
+    .snackbars-wrapper {
+        position: fixed;
+        left: 1rem;
+        bottom: 1rem;
+        z-index: 100;
+        overflow: hidden;
+    }
+    
+    .snackbar {
+        align-self: start;
+        animation: snackbar-animation @((int)SnackbarTimeout.TotalSeconds)s forwards linear;
+    }
+    
+    @@keyframes snackbar-animation {
+        0% {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        1% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        99% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+</style>
+
+<div class="snackbars-wrapper d-flex flex-column gap-1">
+    @for (int i = 0; i < snackbars.Count; i++)
+    {
+        var snackbar = snackbars[i];
+        <div @key="snackbar" class="snackbar d-flex space-between align-center gap-1 @GetSeverityColor(snackbar.Severity) rounded-sm pa-2" style="min-width: 400px;">
+            <p>@snackbar.Message</p>
+            <button class="btn-icon" @onclick="() => Remove(snackbar)"><Icon Path="@Icons.Delete" Size="18" Color="inherit" /></button>
+        </div>
+    }
+</div>
+
+<CascadingValue Value="this" IsFixed>
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public TimeSpan SnackbarTimeout { get; set; } = TimeSpan.FromSeconds(8);
+    
+    private readonly List<SnackbarInstance> snackbars = [];
+
+    public void Add(Severity severity, string message)
+    {
+        var instance = new SnackbarInstance(SnackbarCallback, SnackbarTimeout)
+        {
+            Severity = severity,
+            Message = message
+        };
+        snackbars.Add(instance);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SnackbarCallback(SnackbarInstance snackbar)
+    {
+        snackbars.Remove(snackbar);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Remove(SnackbarInstance snackbar)
+    {
+        snackbar.Dispose();
+        snackbars.Remove(snackbar);
+    }
+
+    private string GetSeverityColor(Severity severity)
+    {
+        return severity switch
+        {
+            Severity.Normal => "bg-main text-main",
+            Severity.Info => "bg-primary text-white",
+            Severity.Warning => "bg-warning text-white",
+            Severity.Error => "bg-error text-white",
+            _ => "bg-main text-main"
+        };
+    }
+    
+    private sealed class SnackbarInstance : IDisposable
+    {
+        public Severity Severity { get; set; }
+        public string? Message { get; set; }
+        
+        private readonly Timer timer;
+        private readonly Action<SnackbarInstance> timerCallback;
+
+        public SnackbarInstance(Action<SnackbarInstance> timerCallback, TimeSpan timerTimeout)
+        {
+            this.timerCallback = timerCallback;
+            timer = new Timer(InternalTimerCallback, null, timerTimeout, Timeout.InfiniteTimeSpan);
+        }
+
+        private void InternalTimerCallback(object? state)
+        {
+            timerCallback.Invoke(this);
+        }
+
+        public void Dispose()
+        {
+            timer.Dispose();
+        }
+    }
+}

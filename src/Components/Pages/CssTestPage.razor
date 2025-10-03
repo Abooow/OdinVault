@@ -1,0 +1,444 @@
+@page "/css-test"
+@using System.Globalization
+
+<PageTitle>CSS Examples</PageTitle>
+
+<style>
+    :root :has(article:not([lightmode])) {
+        --font-primary: "Segoe UI", "Roboto", sans-serif;
+        --font-secondary: "Roboto", sans-serif;
+        --font-fancy: "Mr Dafoe", cursive;
+        --font-code: consolas;
+    
+        --color-primary: oklch(0.544 0.15 @GetHue());
+        --color-bg-dark: oklch(0.05 0.007 @GetHue());
+        --color-bg-main: oklch(0.18 0.0028 @GetHue());
+        --color-bg-light: oklch(0.23 0.0028 @GetHue());
+        --color-bg-lightest: oklch(0.3 0.005 @GetHue());
+        --color-text-link: oklch(0.544 0.15 @GetHue());
+        --color-text-main: oklch(0.987 0.03 @GetHue());
+        --color-text-light: oklch(0.996 0.043 @GetHue());
+        --color-text-dark: oklch(0.696 0.02 @GetHue());
+        --color-border: oklch(0.48 0.016 @GetHue());
+    
+        --color-success: oklch(0.6707 0.12 157.81);
+        --color-warning: oklch(0.775 0.12 99);
+        --color-error: oklch(0.5379 0.12 32.5);
+    }
+    
+    :root :has(article[lightmode]) {
+        --color-primary: oklch(0.544 0.15 @GetHue());
+        --color-bg-dark: oklch(0.848 0.0072 @GetHue());
+        --color-bg-main: oklch(0.92 0.0035 @GetHue());
+        --color-bg-light: oklch(0.95 0.0035 @GetHue());
+        --color-bg-lightest: oklch(0.979 0.008 @GetHue());
+        --color-text-link: oklch(0.544 0.15 @GetHue());
+        --color-text-main: oklch(0.147 0.082 @GetHue());
+        --color-text-light: oklch(0.7 0.0634 @GetHue());
+        --color-text-dark: oklch(0.65 0.022 @GetHue());
+        --color-border: oklch(0.75 0.016 @GetHue());
+    
+        --color-success: oklch(0.6707 0.12 157.81);
+        --color-warning: oklch(0.775 0.12 99);
+        --color-error: oklch(0.5379 0.12 32.5);
+    }
+</style>
+
+<article class="main-content py-4" lightmode="@lightMode">
+    <div class="d-flex space-between align-end mb-1">
+        <h1>CSS Examples</h1>
+    </div>
+    <div class="divider"></div>
+
+    <div class="bg-light mt-4 pa-3">
+        <p>Change Hue</p>
+        <input class="input pa-0" @bind="hue" @bind:event="oninput" type="range" min="0" max="720" />
+        <p>Value: <span class="text-primary">@GetHue()</span></p>
+        
+        <p class="d-flex align-center gap-2 mt-3">Light Mode <input class="d-inline" type="checkbox" @bind="lightMode" /></p>
+    </div>
+    
+    <!-- Inputs -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Inputs</p>
+
+        <div>
+            <input class="input" placeholder="placeholder" />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input class=\"input\" />")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <input class="input-underlined" placeholder="placeholder" />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input class=\"input-underlined\" />")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <input class="input" placeholder="placeholder" disabled />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input class=\"input\" disabled />")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <input class="input-underlined" placeholder="placeholder" disabled />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input class=\"input-underlined\" disabled />")
+            </code>
+        </div>
+        
+        <div class="mt-3">
+            <input type="checkbox" checked />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input type=\"checkbox\" />")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <input type="checkbox" data-icon="minus" checked />
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<input type=\"checkbox\" data-icon=\"minus\" />")
+            </code>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Buttons</p>
+
+        <div>
+            <button class="btn">Filled</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-outlined">Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-outlined text-primary">Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined text-primary\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-success">Success Filled</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-success\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-outlined btn-success">Success Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined btn-success\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-warning">Warning Filled</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-warning\">Click Me</button>")
+            </code>
+        </div>
+        
+        <div class="mt-3">
+            <button class="btn btn-outlined btn-warning">Warning Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined btn-warning\">Click Me</button>")
+            </code>
+        </div>
+        
+        <div class="mt-3">
+            <button class="btn btn-error">Error Filled</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-error\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-outlined btn-error">Error Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined btn-error\">Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn" disabled>Disabled</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn\" disabled>Click Me</button>")
+            </code>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-outlined" disabled>Disabled Outlined</button>
+            <code class="d-block bg-lightest text-link pa-2 mt-2" style="white-space: pre-line;">
+                @("<button class=\"btn btn-outlined\" disabled>Click Me</button>")
+            </code>
+        </div>
+    </div>
+
+    <!-- Colors -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Colors</p>
+
+        <div class="bg-black mb-2 pa-2">bg-black</div>
+        <div class="bg-white text-dark mb-2 pa-2">bg-white</div>
+        <div class="bg-dark mb-2 pa-2">bg-dark</div>
+        <div class="bg-main mb-2 pa-2">bg-main</div>
+        <div class="bg-light mb-2 pa-2">bg-light</div>
+        <div class="bg-lightest mb-2 pa-2">bg-lightest</div>
+        <div class="bg-success mb-2 pa-2">bg-success</div>
+        <div class="bg-success-transparent mb-2 pa-2">bg-success-transparent</div>
+        <div class="bg-warning mb-2 pa-2">bg-warning</div>
+        <div class="bg-warning-transparent mb-2 pa-2">bg-warning-transparent</div>
+        <div class="bg-error mb-2 pa-2">bg-error</div>
+        <div class="bg-error-transparent mb-2 pa-2">bg-error-transparent</div>
+        <div class="bg-primary mb-2 pa-2">bg-primary</div>
+        <div class="bg-primary-transparent mb-2 pa-2">bg-primary-transparent</div>
+
+        <p class="text-link mt-4">text-link</p>
+        <p class="text-main mt-2">text-main</p>
+        <p class="text-light mt-2">text-light</p>
+        <p class="text-gray mt-2">text-gray</p>
+        <p class="text-dark mt-2">text-dark</p>
+        <p class="text-black mt-2">text-black</p>
+        <p class="text-success mt-2">text-success</p>
+        <p class="text-warning mt-2">text-warning</p>
+        <p class="text-error mt-2">text-error</p>
+        <p class="text-primary mt-2">text-primary</p>
+    </div>
+
+    <!-- Typography -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Typography</p>
+
+        <p class="font-primary">font-primary</p>
+        <p class="font-secondary">font-secondary</p>
+        <p class="font-fancy">font-fancy</p>
+        <p class="font-code">font-code</p>
+        <p class="font-title">font-title</p>
+        <p class="font-subtitle">font-subtitle</p>
+        <p class="font-body">font-body</p>
+        <p class="text-bold">text-bold</p>
+        <p class="text-italic">text-italic</p>
+        <p class="text-small">text-small</p>
+        <p class="text-center">text-center</p>
+        <p class="text-end">text-end</p>
+    </div>
+
+    <!-- Margin and Padding -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Margins</p>
+        <div class="bg-primary ma-1 pa-2">ma-1</div>
+        <div class="bg-primary ma-2 pa-2">ma-2</div>
+        <div class="bg-primary ma-3 pa-2">ma-3</div>
+        <div class="bg-primary ma-4 pa-2">ma-4</div>
+        <div class="bg-primary ma-5 pa-2">ma-5</div>
+        <div class="bg-primary ma-6 pa-2">ma-6</div>
+        <div class="bg-primary ma-0 pa-2">ma-0</div>
+
+        <p class="font-subtitle mb-3 mt-4">Paddings</p>
+        <div class="bg-primary mb-2 pa-1">pa-1</div>
+        <div class="bg-primary mb-2 pa-2">pa-2</div>
+        <div class="bg-primary mb-2 pa-3">pa-3</div>
+        <div class="bg-primary mb-2 pa-4">pa-4</div>
+        <div class="bg-primary mb-2 pa-5">pa-5</div>
+        <div class="bg-primary mb-2 pa-6">pa-6</div>
+
+        <div class="bg-lightest text-primary mt-4 py-2 px-3">
+            <p class="text-italic">Margins and Paddings have the following classes available:</p>
+            <p>ma-0 to ma-6 (margin all - top, right, bottom, left)</p>
+            <p>my-0 to my-6 (margin y - top, bottom)</p>
+            <p>mx-0 to mx-6 (margin x - left, right)</p>
+            <p>mt-0 to mt-6 (margin top)</p>
+            <p>mb-0 to mb-6 (margin bottom)</p>
+            <p>mr-0 to mr-6 (margin right)</p>
+            <p>ml-0 to ml-6 (margin left)</p>
+            <p>ma-auto, my-auto, mx-auto, mt-auto, mb-auto, mr-auto, ml-auto</p>
+        </div>
+    </div>
+
+    <!-- Flexing -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Flexing</p>
+
+        <div class="d-flex gap-0">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-0</code>
+
+        <div class="d-flex gap-1 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-1</code>
+
+        <div class="d-flex gap-2 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-2</code>
+
+        <div class="d-flex gap-3 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-3</code>
+
+        <div class="d-flex gap-4 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-4</code>
+
+        <div class="d-flex gap-5 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-5</code>
+        
+        <div class="d-flex gap-6 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex gap-6</code>
+
+        <div class="d-flex gap-3 mt-3">
+            <div class="bg-primary pa-3 flex-1 text-center">flex-1</div>
+            <div class="bg-primary pa-3 flex-0 text-center">no flex</div>
+            <div class="bg-primary pa-3 flex-1 text-center">flex-1</div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider border-gray my-5"></div>
+
+        <div class="d-flex space-between mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex space-between</code>
+
+        <div class="d-flex space-around mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex space-around</code>
+
+        <div class="d-flex space-evenly mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex space-evenly</code>
+
+        <div class="d-flex justify-center gap-2 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex justify-center</code>
+
+        <div class="d-flex justify-end gap-2 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex justify-end</code>
+
+        <div class="d-flex flex-column gap-2 mt-3">
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+            <div class="bg-primary pa-3"></div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex flex-column</code>
+
+        <div class="d-flex flex-column align-start gap-2 bg-main mt-3">
+            <div class="bg-primary px-3 py-2">item 1</div>
+            <div class="bg-primary px-3 py-2">item 2</div>
+            <div class="bg-primary px-3 py-2">item 3</div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex align-start</code>
+
+        <div class="d-flex flex-column align-center gap-2 bg-main mt-3">
+            <div class="bg-primary px-3 py-2">item 1</div>
+            <div class="bg-primary px-3 py-2">item 2</div>
+            <div class="bg-primary px-3 py-2">item 3</div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex align-center</code>
+
+        <div class="d-flex flex-column align-end gap-2 bg-main mt-3">
+            <div class="bg-primary px-3 py-2">item 1</div>
+            <div class="bg-primary px-3 py-2">item 2</div>
+            <div class="bg-primary px-3 py-2">item 3</div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">d-flex align-end</code>
+
+        <div class="content-centered bg-main mt-3 pa-3" style="height: 200px">
+            <div class="bg-primary px-3 py-2">content</div>
+        </div>
+        <code class="d-block bg-lightest text-link pa-2 mt-2">content-centered</code>
+    </div>
+
+    <!-- Rounding -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Rounding</p>
+
+        <div class="bg-primary mb-2 pa-3 rounded-none">rounded-none</div>
+        <div class="bg-primary mb-2 pa-3 rounded-sm">rounded-sm</div>
+        <div class="bg-primary mb-2 pa-3 rounded-md">rounded-md</div>
+        <div class="bg-primary mb-2 pa-3 rounded-lg">rounded-lg</div>
+        <div class="bg-primary mb-2 pa-3 round">round</div>
+    </div>
+
+    <!-- Shadows -->
+    <div class="bg-light mt-4 pa-3">
+        <p class="font-subtitle mb-3">Shadows</p>
+
+        <div class="bg-lightest mb-5 pa-3 shadow-none">shadow-none</div>
+        <div class="bg-lightest mb-5 pa-3 shadow-sm">shadow-sm</div>
+        <div class="bg-lightest mb-5 pa-3 shadow-md">shadow-md</div>
+        <div class="bg-lightest mb-5 pa-3 shadow-lg">shadow-lg</div>
+    </div>
+</article>
+
+@code {
+    private double hue = 243 * 2;
+    private bool lightMode = true;
+
+    private string GetHue()
+    {
+        return (hue / 2.0).ToString("0.#", CultureInfo.InvariantCulture);
+    }
+}

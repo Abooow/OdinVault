@@ -1,6 +1,34 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@inject IJSRuntime JsRuntime
+
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        <SnackbarProvider>
+            <DialogProvider @ref="dialogProvider">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+            </DialogProvider>
+        </SnackbarProvider>
     </Found>
 </Router>
+
+@code {
+    private DialogProvider? dialogProvider;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            dialogProvider!.OnDialogChanged += OnDialogChanged;
+    }
+
+    private async void OnDialogChanged(DialogInstance instance, bool opened)
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("eval", $"document.body.style.overflow = '{(dialogProvider!.DialogOpen ? "hidden" : "")}'");
+            StateHasChanged();
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+}
