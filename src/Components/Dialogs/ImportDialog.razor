@@ -61,14 +61,18 @@
             var (decryptKey, _) = Encryption.GenerateKeyFromPassword(passwordHash, extractedIV);
             var decrypted = Encryption.Decrypt(contents, decryptKey);
             
-            var data = JsonSerializer.Deserialize<List<AccountRecord>>(decrypted, JsonSerializerOptions.Web);
-            if (data is null)
+            var accounts = JsonSerializer.Deserialize<List<AccountRecord>>(decrypted, JsonSerializerOptions.Web);
+            if (accounts is null)
             {
                 SnackbarProvider.Add(Severity.Error, "Invalid file contents, try another file.");
                 return;
             }
-            
-            DialogInstance.Close(data);
+
+            foreach (var account in accounts)
+            {
+                account.Id = Guid.CreateVersion7();
+            }
+            DialogInstance.Close(accounts);
         }
         catch
         {
