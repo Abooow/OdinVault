@@ -16,33 +16,34 @@ public sealed class AccountManager(OdinVaultOptions options)
         return user is not null;
     }
     
-    public Task<Result> SignInSanitizedAsync(string path)
+    public Task<Result> SignInSanitizedAsync(string path, string password)
     {
         if (path.Contains('/') || path.Contains('\\'))
             return Task.FromResult(Result.Fail("File can not contain '/' or '\\'"));
         
         path = Path.Combine(options.VaultPath ?? "", path + ".ov");
-        return SignInAsync(path);
+        return SignInAsync(path, password);
     }
     
-    public async Task<Result> SignInAsync(string path)
+    public async Task<Result> SignInAsync(string path, string password)
     {
         if (!File.Exists(path))
             return Result.Fail("File doesn't exist.");
         
+        var passwordHash = Encryption.HashPassword(password);
         try
         {
-            var contents = await File.ReadAllTextAsync(path);
+            var contents = await ReadFileAsync(path, passwordHash);
             var data = JsonSerializer.Deserialize<List<AccountRecord>>(contents, JsonSerializerOptions.Web);
             if (data == null)
                 return Result.Fail("Invalid file contents, try another file.");
         }
         catch
         {
-            return Result.Fail("Invalid file contents, try another file.");
+            return Result.Fail("Invalid password or file contents, try another password.");
         }
         
-        user = new AccountUser(path);
+        user = new AccountUser(path, passwordHash);
         return Result.Success();
     }
 
@@ -51,7 +52,7 @@ public sealed class AccountManager(OdinVaultOptions options)
         user = null;
     }
     
-    public Task<Result> CreateFileSanitizedAsync(string path)
+    public Task<Result> CreateFileSanitizedAsync(string path, string password)
     {
         if (path.Contains('/') || path.Contains('\\'))
             return Task.FromResult(Result.Fail("File can not contain '/' or '\\'"));
@@ -60,16 +61,16 @@ public sealed class AccountManager(OdinVaultOptions options)
             Directory.CreateDirectory(options.VaultPath);
         
         path = Path.Combine(options.VaultPath ?? "", path + ".ov");
-        return CreateFileAsync(path);
+        return CreateFileAsync(path, password);
     }
 
-    public async Task<Result> CreateFileAsync(string path)
+    public async Task<Result> CreateFileAsync(string path, string password)
     {
         if (File.Exists(path))
             return Result.Fail("File already exists.");
 
-        var contents = "[]";
-        await File.WriteAllTextAsync(path, contents);
+        var passwordHash = Encryption.HashPassword(password);
+        await WriteFileAsync(path, "[]", passwordHash);
         return Result.Success();
     }
 
@@ -83,7 +84,7 @@ public sealed class AccountManager(OdinVaultOptions options)
         
         try
         {
-            var contents = await File.ReadAllTextAsync(user.Path);
+            var contents = await ReadFileAsync(user.Path, user.Password);
             return JsonSerializer.Deserialize<List<AccountRecord>>(contents, JsonSerializerOptions.Web)!;
         }
         catch
@@ -98,9 +99,28 @@ public sealed class AccountManager(OdinVaultOptions options)
             return Result.Fail("You are not signed in.");
 
         var contents = JsonSerializer.Serialize(accounts, JsonSerializerOptions.Web);
-        await File.WriteAllTextAsync(user.Path, contents);
+        await WriteFileAsync(user.Path, contents, user.Password);
         return Result.Success();
+    }
+
+    private static async Task<string> ReadFileAsync(string path, string password)
+    {
+        var contents = await File.ReadAllBytesAsync(path);
+        
+        var extractedIV = Encryption.ExtractIV(contents);
+        var (decryptKey, _) = Encryption.GenerateKeyFromPassword(password, extractedIV);
+        var decrypted = Encryption.Decrypt(contents, decryptKey);
+        
+        return decrypted;
+    }
+    
+    private static async Task WriteFileAsync(string path, string contents, string password)
+    {
+        var (encryptKey, iv) = Encryption.GenerateKeyFromPassword(password);
+        var encrypted = Encryption.EncryptToBytes(contents, encryptKey, iv);
+        
+        await File.WriteAllBytesAsync(path, encrypted);
     }
 }
 
-public sealed record AccountUser(string Path);
+public sealed record AccountUser(string Path, string Password);

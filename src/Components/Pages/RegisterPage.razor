@@ -21,6 +21,11 @@
                 <input class="input" @bind="path" @bind:event="oninput" />
             </div>
             
+            <div class="mt-3">
+                <p class="text-small text-dark">Password</p>
+                <input class="input" @bind="password" @bind:event="oninput" type="password" />
+            </div>
+            
             <button class="btn w-100 mt-5" @onclick="Create" disabled="@(!CanCreate())">Create</button>
             <p class="mt-3">Already have a file? <a href="/auth/sign-in">Sign In</a></p>
         </div>
@@ -32,22 +37,23 @@
     public required SnackbarProvider SnackbarProvider { get; set; }
     
     private string? path;
-
+    private string? password;
+    
     private async Task Create()
     {
-        var result = await AccountManager.CreateFileSanitizedAsync(path!);
+        var result = await AccountManager.CreateFileSanitizedAsync(path!, password!);
         if (!result.Succeeded)
         {
             SnackbarProvider.Add(Severity.Error, result.Message!);
             return;
         }
         
-        await AccountManager.SignInSanitizedAsync(path!);
+        await AccountManager.SignInSanitizedAsync(path!, password!);
         NavigationManager.NavigateTo("/");
     }
     
     private bool CanCreate()
     {
-        return !string.IsNullOrWhiteSpace(path);
+        return !string.IsNullOrWhiteSpace(path) && !string.IsNullOrWhiteSpace(password);
     }
 }

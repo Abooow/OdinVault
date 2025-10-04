@@ -21,6 +21,11 @@
                 <input class="input" @bind="file" @bind:event="oninput" />
             </div>
             
+            <div class="mt-3">
+                <p class="text-small text-dark">Password</p>
+                <input class="input" @bind="password" @bind:event="oninput" type="password" />
+            </div>
+            
             <button class="btn w-100 mt-5" @onclick="SignIn" disabled="@(!CanSignIn())">Sign In</button>
             <p class="mt-3">Don't have a file? <a href="/auth/register">Create One</a></p>
         </div>
@@ -32,10 +37,11 @@
     public required SnackbarProvider SnackbarProvider { get; set; }
     
     private string? file;
+    private string? password;
 
     private async Task SignIn()
     {
-        var result = await AccountManager.SignInSanitizedAsync(file!);
+        var result = await AccountManager.SignInSanitizedAsync(file!, password!);
         if (!result.Succeeded)
         {
             SnackbarProvider.Add(Severity.Error, result.Message!);
@@ -47,6 +53,6 @@
     
     private bool CanSignIn()
     {
-        return !string.IsNullOrWhiteSpace(file);
+        return !string.IsNullOrWhiteSpace(file) && !string.IsNullOrWhiteSpace(password);
     }
 }
