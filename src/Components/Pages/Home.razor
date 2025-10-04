@@ -15,19 +15,47 @@
         width: 20px;
         height: 20px;
     }
+
+    @@media (max-width: 900px) {
+        .account {
+            grid-template-columns: auto 1fr 1fr 1fr auto;
+        }
+        
+        .d-sm-none {
+            display: none;
+        }
+    }
 </style>
 
 <div class="main-content my-4">
     <h1 class="mb-5">OdinVault</h1>
-    <button class="btn" @onclick="AddNewAccount">Add New Account</button>
+    
+    <div class="d-flex align-center gap-2">
+        @if (accounts.Count > 0)
+        {
+            <input @onclick="ToggleAllAccounts" checked="@selectedAccounts.Any()" data-icon="minus" title="Toggle All" type="checkbox" class="mr-2 ml-4" />
+        }
+
+        <button class="btn border border-primary" @onclick="AddNewAccount">Add New Account</button>
+
+        @if (selectedAccounts.Any())
+        {
+            <button class="btn btn-outlined btn-error" @onclick="DeleteSelected">Delete</button>
+        }
+    </div>
+    
+    @if (accounts.Count is 0)
+    {
+        <p class="text-dark mt-6">No Accounts</p>
+    }
     
     <div class="d-flex flex-column gap-2 mt-4">
         @foreach (var account in accounts)
         {
             <div @key="account" class="account py-2 px-4 rounded-md bg-light">
-                <input type="checkbox" class="mr-2" />
+                <input @onclick="() => ToggleAccount(account)" checked="@(selectedAccounts.Contains(account))" class="mr-2" type="checkbox" />
                 
-                <img src="@GetDomainLogo(account)" alt="Logo" />
+                <img src="@GetDomainLogo(account)" alt="Logo" class="d-sm-none" />
 
                 @if (IsSite(account))
                 {
@@ -54,12 +82,18 @@
                     <PasswordDisplay Password="@account.Password" />
                 </div>
 
-                <div>
+                <div class="d-sm-none">
                     <p class="text-small text-dark">Created</p>
                     <p>@account.DateCreated</p>
                 </div>
 
-                <button class="btn-icon"><Icon Path="@Icons.Edit" Size="20" Color="var(--color-text-main)" /></button>
+                <div class="d-flex justify-end gap-2" style="width: 48px;">
+                    @if (!string.IsNullOrWhiteSpace(account.Notes))
+                    {
+                        <div class="btn-icon" title="@account.Notes"><Icon Path="@Icons.Notes" Size="20" Color="var(--color-border)" /></div>
+                    }
+                    <button class="btn-icon"><Icon Path="@Icons.Edit" Size="20" Color="var(--color-text-main)" /></button>
+                </div>
             </div>
         }
     </div>
@@ -68,7 +102,8 @@
 @code {
     [CascadingParameter]
     public required DialogProvider DialogProvider { get; set; }
-    
+
+    private HashSet<AccountRecord> selectedAccounts = [];
     private readonly List<AccountRecord> accounts = [
         new () { Domain = "https://app.closingdealz.io/dashboard", Username = "daniel@gmail.com", Password = "password1" },
         new () { Domain = "RuneScape", Username = "Froggy", Password = "password2" }
@@ -83,6 +118,43 @@
         accounts.Add((AccountRecord)result.Data!);
     }
 
+    private void ToggleAccount(AccountRecord account)
+    {
+        if (!selectedAccounts.Add(account))
+            selectedAccounts.Remove(account);
+    }
+    
+    private void ToggleAllAccounts()
+    {
+        if (selectedAccounts.Any())
+        {
+            selectedAccounts.Clear();
+        }
+        else
+        {
+            foreach (var account in accounts)
+            {
+                selectedAccounts.Add(account);
+            }
+        }
+    }
+
+    private async Task DeleteSelected()
+    {
+        Dictionary<string, object?> parameters = [];
+        parameters[nameof(ConfirmationDialog.Message)] = "Are you sure you want to delete these accounts?";
+        
+        var result = await DialogProvider.Show<ConfirmationDialog>(parameters, "Delete Accounts").Result;
+        if (result.IsCancel)
+            return;
+
+        foreach (var account in selectedAccounts)
+        {
+            accounts.Remove(account);
+        }
+        selectedAccounts.Clear();
+    }
+    
     private static bool IsSite(AccountRecord account)
     {
         return Uri.TryCreate(GetSiteUrl(account), UriKind.Absolute, out _);
