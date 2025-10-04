@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Text.Json
 @inject AccountManager AccountManager
 @inject NavigationManager NavigationManager
 
@@ -11,6 +12,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+        box-shadow: 0 0 14px 0 color-mix(in oklab, var(--color-primary), transparent 96%), 0 0 3px 1px color-mix(in oklab, var(--color-primary), transparent 90%);
     }
 
     .account img {
@@ -47,7 +49,8 @@
 
         @if (selectedAccounts.Any())
         {
-            <button class="btn btn-outlined btn-error" @onclick="DeleteSelected">Delete</button>
+            <button class="btn btn-outlined" @onclick="ExportSelected">Export</button>
+            <button class="btn-icon" @onclick="DeleteSelected" title="Delete"><Icon Path="@Icons.Trash" Size="20" Color="var(--color-error)" /></button>
         }
         
         @if (AccountManager.IsSignedIn())
@@ -68,7 +71,7 @@
     <div class="d-flex flex-column gap-2 mt-4">
         @foreach (var account in accounts)
         {
-            <div @key="account" class="account py-2 px-4 rounded-md bg-light">
+            <div @key="account" class="account py-2 px-4 rounded-md bg-light shadow-sm">
                 <input @onclick="() => ToggleAccount(account)" checked="@(selectedAccounts.Contains(account))" class="mr-2" type="checkbox" />
 
                 <img src="@GetDomainLogo(account)" alt="Logo" class="d-sm-none" />
@@ -181,6 +184,13 @@
         var result = await AccountManager.SaveAccountsAsync(accounts);
         if (!result.Succeeded)
             SnackbarProvider.Add(Severity.Error, result.Message!);
+    }
+
+    private void ExportSelected()
+    {
+        Dictionary<string, object?> parameters = [];
+        parameters[nameof(ExportDialog.Accounts)] = selectedAccounts;
+        DialogProvider.Show<ExportDialog>(parameters, "Export Accounts");
     }
     
     private async Task DeleteSelected()

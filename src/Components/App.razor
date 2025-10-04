@@ -16,6 +16,28 @@
 <body>
 <Routes @rendermode="InteractiveServer" />
 <script src="_framework/blazor.web.js"></script>
+<script>
+    window.downloadContents = function (name, contentsBase64) {
+        const binaryString = atob(contentsBase64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], { type: "application/octet-stream" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = name;
+
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+</script>
 </body>
 
 </html>
