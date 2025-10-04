@@ -3,6 +3,13 @@
 <PageTitle>Home</PageTitle>
 
 <style>
+    .logo-shadow {
+        background: radial-gradient(var(--color-primary) 10%, transparent 70%);
+        background-size: 40% 300%;
+        background-position: center -200px;
+        background-repeat: no-repeat;
+    }
+    
     .account {
         display: grid;
         grid-template-columns: auto auto 1fr 1fr 1fr 1fr auto;
@@ -27,9 +34,14 @@
     }
 </style>
 
-<div class="main-content my-4">
-    <h1 class="mb-5">OdinVault</h1>
-    
+<div class="main-content py-4">
+    <div class="d-flex align-center justify-center">
+        <span class="font-code font-subtitle">ODIN</span>
+        <Icon Path="@Icons.Logo" Color="var(--color-primary)" Size="50" />
+        <span class="font-code font-subtitle">VAULT</span>
+    </div>
+    <div class="logo-shadow pa-6 mt-1"></div>
+
     <div class="d-flex align-center gap-2">
         @if (accounts.Count > 0)
         {
@@ -43,18 +55,18 @@
             <button class="btn btn-outlined btn-error" @onclick="DeleteSelected">Delete</button>
         }
     </div>
-    
+
     @if (accounts.Count is 0)
     {
         <p class="text-dark mt-6">No Accounts</p>
     }
-    
+
     <div class="d-flex flex-column gap-2 mt-4">
         @foreach (var account in accounts)
         {
             <div @key="account" class="account py-2 px-4 rounded-md bg-light">
                 <input @onclick="() => ToggleAccount(account)" checked="@(selectedAccounts.Contains(account))" class="mr-2" type="checkbox" />
-                
+
                 <img src="@GetDomainLogo(account)" alt="Logo" class="d-sm-none" />
 
                 @if (IsSite(account))
