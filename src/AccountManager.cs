@@ -68,10 +68,17 @@ public sealed class AccountManager(OdinVaultOptions options)
     {
         if (File.Exists(path))
             return Result.Fail("File already exists.");
-
-        var passwordHash = Encryption.HashPassword(password);
-        await WriteFileAsync(path, "[]", passwordHash);
-        return Result.Success();
+        
+        try
+        {
+            var passwordHash = Encryption.HashPassword(password);
+            await WriteFileAsync(path, "[]", passwordHash);
+            return Result.Success();
+        }
+        catch
+        {
+            return Result.Fail("Something went wrong, try another name.");
+        }
     }
 
     public async Task<Result<List<AccountRecord>>> GetAccountsAsync()
