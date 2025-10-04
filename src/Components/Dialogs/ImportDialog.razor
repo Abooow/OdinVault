@@ -1,0 +1,88 @@
+@using System.Text.Json
+@implements IDisposable
+
+<Dialog Width="450">
+    <DialogContent>
+        <div class="border border-light rounded-md border-dashed content-centered relative @(draggingFile || memoryStream is not null ? "border-primary" : "")" style="height: 200px;">
+            <InputFile accept=".ov" hidden="false" class="absolute inset-0 d-block pointer opacity-0"
+                       OnChange="HandleFileUpload"
+                       @ondragenter="() => draggingFile = true"
+                       @ondrop="() => draggingFile = false"
+                       @ondragleave="() => draggingFile = false" />
+
+            @if (memoryStream is null)
+            {
+                <p class="text-italic">Drag and drop your file here</p>
+            }
+            else
+            {
+                <p class="text-italic">File has been uploaded</p>
+            }
+        </div>
+
+        <div class="mt-3">
+            <p class="text-small text-dark">Password*</p>
+            <input class="input" @bind="password" @bind:event="oninput" type="password" />
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <button class="btn" @onclick="DialogInstance.Cancel">Cancel</button>
+        <button class="btn btn-outlined" @onclick="Import" disabled="@(!CanImport())">Import</button>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [CascadingParameter]
+    public required DialogInstance DialogInstance { get; set; }
+    
+    [CascadingParameter]
+    public required SnackbarProvider SnackbarProvider { get; set; }
+
+    private bool draggingFile;
+    private string? password;
+    private MemoryStream? memoryStream;
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        await using var content = e.File.OpenReadStream(5120000);
+        memoryStream = new MemoryStream();
+        await content.CopyToAsync(memoryStream);
+    }
+    
+    private void Import()
+    {
+        try
+        {
+            var passwordHash = Encryption.HashPassword(password!);
+            var contents = memoryStream!.ToArray();
+            
+            var extractedIV = Encryption.ExtractIV(contents);
+            var (decryptKey, _) = Encryption.GenerateKeyFromPassword(passwordHash, extractedIV);
+            var decrypted = Encryption.Decrypt(contents, decryptKey);
+            
+            var data = JsonSerializer.Deserialize<List<AccountRecord>>(decrypted, JsonSerializerOptions.Web);
+            if (data is null)
+            {
+                SnackbarProvider.Add(Severity.Error, "Invalid file contents, try another file.");
+                return;
+            }
+            
+            DialogInstance.Close(data);
+        }
+        catch
+        {
+            SnackbarProvider.Add(Severity.Error, "Invalid password or file contents, try another password.");
+        }
+    }
+
+    private bool CanImport()
+    {
+        return memoryStream is not null && !string.IsNullOrWhiteSpace(password);
+    }
+
+    public void Dispose()
+    {
+        memoryStream?.Dispose();
+    }
+}

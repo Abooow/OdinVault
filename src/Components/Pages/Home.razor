@@ -1,5 +1,4 @@
 ﻿@page "/"
-@using System.Text.Json
 @inject AccountManager AccountManager
 @inject NavigationManager NavigationManager
 
@@ -46,6 +45,7 @@
         }
 
         <button class="btn border border-primary" @onclick="AddNewAccount">Add New Account</button>
+        <button class="btn btn-outlined" @onclick="ImportAccounts">Import</button>
 
         @if (selectedAccounts.Any())
         {
@@ -190,7 +190,20 @@
     {
         Dictionary<string, object?> parameters = [];
         parameters[nameof(ExportDialog.Accounts)] = selectedAccounts;
-        DialogProvider.Show<ExportDialog>(parameters, "Export Accounts");
+        DialogProvider.Show<ExportDialog>(parameters, "Export Accounts", new DialogOptions() { DisableBackdropClick = true });
+    }
+
+    private async Task ImportAccounts()
+    {
+        var dialogResult = await DialogProvider.Show<ImportDialog>("Import Accounts", new DialogOptions() { DisableBackdropClick = true }).Result;
+        if (dialogResult.IsCancel)
+            return;
+        
+        accounts.AddRange((List<AccountRecord>)dialogResult.Data!);
+        
+        var result = await AccountManager.SaveAccountsAsync(accounts);
+        if (!result.Succeeded)
+            SnackbarProvider.Add(Severity.Error, result.Message!);
     }
     
     private async Task DeleteSelected()

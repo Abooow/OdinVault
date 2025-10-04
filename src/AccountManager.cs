@@ -35,7 +35,7 @@ public sealed class AccountManager(OdinVaultOptions options)
         {
             var contents = await ReadFileAsync(path, passwordHash);
             var data = JsonSerializer.Deserialize<List<AccountRecord>>(contents, JsonSerializerOptions.Web);
-            if (data == null)
+            if (data is null)
                 return Result.Fail("Invalid file contents, try another file.");
         }
         catch
