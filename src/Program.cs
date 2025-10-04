@@ -1,3 +1,4 @@
+using OdinVault;
 using OdinVault.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var options = builder.Configuration.GetSection("OdinVault").Get<OdinVaultOptions>() ?? new OdinVaultOptions();
+builder.Services.AddSingleton(options);
+
+builder.Services.AddScoped<AccountManager>();
 
 var app = builder.Build();
 

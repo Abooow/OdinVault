@@ -1,0 +1,53 @@
+@page "/auth/register"
+@inject AccountManager AccountManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register</PageTitle>
+
+<div class="main-content py-4">
+    <div class="d-flex align-center justify-center">
+        <span class="font-code font-subtitle">ODIN</span>
+        <Icon Path="@Icons.Logo" Color="var(--color-primary)" Size="50" />
+        <span class="font-code font-subtitle">VAULT</span>
+    </div>
+    <div class="logo-shadow pa-6 mt-1"></div>
+
+    <div class="content-centered" style="margin-top: clamp(1rem, 20vh, 10rem);">
+        <div class="bg-light rounded-md shadow-md pa-3 mx-3" style="width: min(400px, 100%);">
+            <h1>Register</h1>
+            
+            <div class="mt-3">
+                <p class="text-small text-dark">Path</p>
+                <input class="input" @bind="path" @bind:event="oninput" />
+            </div>
+            
+            <button class="btn w-100 mt-5" @onclick="Create" disabled="@(!CanCreate())">Create</button>
+            <p class="mt-3">Already have a file? <a href="/auth/sign-in">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public required SnackbarProvider SnackbarProvider { get; set; }
+    
+    private string? path;
+
+    private async Task Create()
+    {
+        var result = await AccountManager.CreateFileSanitizedAsync(path!);
+        if (!result.Succeeded)
+        {
+            SnackbarProvider.Add(Severity.Error, result.Message!);
+            return;
+        }
+        
+        await AccountManager.SignInSanitizedAsync(path!);
+        NavigationManager.NavigateTo("/");
+    }
+    
+    private bool CanCreate()
+    {
+        return !string.IsNullOrWhiteSpace(path);
+    }
+}

@@ -1,15 +1,10 @@
 ﻿@page "/"
+@inject AccountManager AccountManager
+@inject NavigationManager NavigationManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Accounts</PageTitle>
 
 <style>
-    .logo-shadow {
-        background: radial-gradient(var(--color-primary) 10%, transparent 70%);
-        background-size: 40% 300%;
-        background-position: center -200px;
-        background-repeat: no-repeat;
-    }
-    
     .account {
         display: grid;
         grid-template-columns: auto auto 1fr 1fr 1fr 1fr auto;
@@ -53,6 +48,15 @@
         @if (selectedAccounts.Any())
         {
             <button class="btn btn-outlined btn-error" @onclick="DeleteSelected">Delete</button>
+        }
+        
+        @if (AccountManager.IsSignedIn())
+        {
+            <div class="ml-auto align-self-end">
+                <p class="text-small text-dark">Signed in as</p>
+                <p>@Path.GetFileNameWithoutExtension(AccountManager.GetUserPath())</p>
+            </div>
+            <button class="btn-icon align-self-end" @onclick="SignOut" title="Sign Out" style="margin-bottom: 1px;"><Icon Path="@Icons.Delete" Size="16" Color="var(--color-error)" /></button>
         }
     </div>
 
@@ -115,19 +119,47 @@
     [CascadingParameter]
     public required DialogProvider DialogProvider { get; set; }
 
-    private HashSet<AccountRecord> selectedAccounts = [];
-    private readonly List<AccountRecord> accounts = [
-        new () { Domain = "https://app.closingdealz.io/dashboard", Username = "daniel@gmail.com", Password = "password1" },
-        new () { Domain = "RuneScape", Username = "Froggy", Password = "password2" }
-    ];
+    [CascadingParameter]
+    public required SnackbarProvider SnackbarProvider { get; set; }
+    
+    private List<AccountRecord> accounts = [];
+    private readonly HashSet<AccountRecord> selectedAccounts = [];
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AccountManager.IsSignedIn())
+        {
+            NavigationManager.NavigateTo("/auth/sign-in");
+            return;
+        }
+
+        var result = await AccountManager.GetAccountsAsync();
+        if (!result.Succeeded)
+        {
+            SnackbarProvider.Add(Severity.Error, result.Message!);
+            return;
+        }
+
+        accounts = result.Data!;
+    }
+
+    private void SignOut()
+    {
+        AccountManager.SignOut();
+        NavigationManager.NavigateTo("/auth/sign-in", forceLoad: true);
+    }
+    
     private async Task AddNewAccount()
     {
-        var result = await DialogProvider.Show<CreateAccountDialog>("Create Account", new DialogOptions() { DisableBackdropClick = true }).Result;
-        if (result.IsCancel)
+        var dialogResult = await DialogProvider.Show<CreateAccountDialog>("Create Account", new DialogOptions() { DisableBackdropClick = true }).Result;
+        if (dialogResult.IsCancel)
             return;
         
-        accounts.Add((AccountRecord)result.Data!);
+        accounts.Add((AccountRecord)dialogResult.Data!);
+        
+        var result = await AccountManager.SaveAccountsAsync(accounts);
+        if (!result.Succeeded)
+            SnackbarProvider.Add(Severity.Error, result.Message!);
     }
 
     private async Task EditAccount(AccountRecord account)
@@ -135,16 +167,20 @@
         Dictionary<string, object?> parameters = [];
         parameters[nameof(EditAccountDialog.Account)] = account;
         
-        var result = await DialogProvider.Show<EditAccountDialog>(parameters, "Edit Account", new DialogOptions() { DisableBackdropClick = true }).Result;
-        if (result.IsCancel)
+        var dialogResult = await DialogProvider.Show<EditAccountDialog>(parameters, "Edit Account", new DialogOptions() { DisableBackdropClick = true }).Result;
+        if (dialogResult.IsCancel)
             return;
 
-        var updatedAccount = (AccountRecord)result.Data!;
+        var updatedAccount = (AccountRecord)dialogResult.Data!;
         account.LogoUrl = updatedAccount.LogoUrl;
         account.Domain = updatedAccount.Domain;
         account.Username = updatedAccount.Username;
         account.Password = updatedAccount.Password;
         account.Notes = updatedAccount.Notes;
+        
+        var result = await AccountManager.SaveAccountsAsync(accounts);
+        if (!result.Succeeded)
+            SnackbarProvider.Add(Severity.Error, result.Message!);
     }
     
     private async Task DeleteSelected()
@@ -152,15 +188,19 @@
         Dictionary<string, object?> parameters = [];
         parameters[nameof(ConfirmationDialog.Message)] = "Are you sure you want to delete these accounts?";
         
-        var result = await DialogProvider.Show<ConfirmationDialog>(parameters, "Delete Accounts").Result;
-        if (result.IsCancel)
+        var dialogResult = await DialogProvider.Show<ConfirmationDialog>(parameters, "Delete Accounts").Result;
+        if (dialogResult.IsCancel)
             return;
-
+        
         foreach (var account in selectedAccounts)
         {
             accounts.Remove(account);
         }
         selectedAccounts.Clear();
+        
+        var result = await AccountManager.SaveAccountsAsync(accounts);
+        if (!result.Succeeded)
+            SnackbarProvider.Add(Severity.Error, result.Message!);
     }
     
     private void ToggleAccount(AccountRecord account)
