@@ -104,7 +104,7 @@
                     {
                         <div class="btn-icon" title="@account.Notes"><Icon Path="@Icons.Notes" Size="20" Color="var(--color-border)" /></div>
                     }
-                    <button class="btn-icon"><Icon Path="@Icons.Edit" Size="20" Color="var(--color-text-main)" /></button>
+                    <button class="btn-icon" @onclick="() => EditAccount(account)"><Icon Path="@Icons.Edit" Size="20" Color="var(--color-text-main)" /></button>
                 </div>
             </div>
         }
@@ -130,6 +130,39 @@
         accounts.Add((AccountRecord)result.Data!);
     }
 
+    private async Task EditAccount(AccountRecord account)
+    {
+        Dictionary<string, object?> parameters = [];
+        parameters[nameof(EditAccountDialog.Account)] = account;
+        
+        var result = await DialogProvider.Show<EditAccountDialog>(parameters, "Edit Account", new DialogOptions() { DisableBackdropClick = true }).Result;
+        if (result.IsCancel)
+            return;
+
+        var updatedAccount = (AccountRecord)result.Data!;
+        account.LogoUrl = updatedAccount.LogoUrl;
+        account.Domain = updatedAccount.Domain;
+        account.Username = updatedAccount.Username;
+        account.Password = updatedAccount.Password;
+        account.Notes = updatedAccount.Notes;
+    }
+    
+    private async Task DeleteSelected()
+    {
+        Dictionary<string, object?> parameters = [];
+        parameters[nameof(ConfirmationDialog.Message)] = "Are you sure you want to delete these accounts?";
+        
+        var result = await DialogProvider.Show<ConfirmationDialog>(parameters, "Delete Accounts").Result;
+        if (result.IsCancel)
+            return;
+
+        foreach (var account in selectedAccounts)
+        {
+            accounts.Remove(account);
+        }
+        selectedAccounts.Clear();
+    }
+    
     private void ToggleAccount(AccountRecord account)
     {
         if (!selectedAccounts.Add(account))
@@ -151,22 +184,6 @@
         }
     }
 
-    private async Task DeleteSelected()
-    {
-        Dictionary<string, object?> parameters = [];
-        parameters[nameof(ConfirmationDialog.Message)] = "Are you sure you want to delete these accounts?";
-        
-        var result = await DialogProvider.Show<ConfirmationDialog>(parameters, "Delete Accounts").Result;
-        if (result.IsCancel)
-            return;
-
-        foreach (var account in selectedAccounts)
-        {
-            accounts.Remove(account);
-        }
-        selectedAccounts.Clear();
-    }
-    
     private static bool IsSite(AccountRecord account)
     {
         return Uri.TryCreate(GetSiteUrl(account), UriKind.Absolute, out _);

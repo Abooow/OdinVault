@@ -1,0 +1,67 @@
+<Dialog Width="450">
+    <DialogContent>
+        <div>
+            <p class="text-small text-dark">Site Url/App*</p>
+            <input class="input" @bind="editAccount.Domain" @bind:event="oninput" />
+        </div>
+        
+        <div class="mt-3">
+            <p class="text-small text-dark">Logo Url</p>
+            <input class="input" @bind="editAccount.LogoUrl" @bind:event="oninput" />
+        </div>
+        
+        <div class="mt-3">
+            <p class="text-small text-dark">Username/Email*</p>
+            <input class="input" @bind="editAccount.Username" @bind:event="oninput" />
+        </div>
+        
+        <div class="mt-3">
+            <p class="text-small text-dark">Password</p>
+            <input class="input" @bind="editAccount.Password" @bind:event="oninput" />
+        </div>
+        
+        <div class="mt-3">
+            <p class="text-small text-dark">Notes</p>
+            <textarea class="input" rows="2" style="resize: vertical; min-height: 2em; max-height: 10em;" @bind="editAccount.Notes" @bind:event="oninput"></textarea>
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <button class="btn btn-outlined" @onclick="DialogInstance.Cancel">Cancel</button>
+        <button class="btn" @onclick="Update" disabled="@(!CanUpdate())">Update</button>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [CascadingParameter]
+    public required DialogInstance DialogInstance { get; set; }
+
+    [Parameter]
+    public required AccountRecord Account { get; set; }
+
+    private AccountRecord editAccount = default!;
+
+    protected override void OnInitialized()
+    {
+        editAccount = new AccountRecord()
+        {
+            Id = Account.Id,
+            LogoUrl = Account.LogoUrl,
+            Domain = Account.Domain,
+            Username = Account.Username,
+            Password = Account.Password,
+            Notes = Account.Notes,
+            DateCreated = Account.DateCreated
+        };
+    }
+
+    private void Update()
+    {
+        DialogInstance.Close(editAccount);
+    }
+    
+    private bool CanUpdate()
+    {
+        return !string.IsNullOrWhiteSpace(editAccount.Domain) && !string.IsNullOrWhiteSpace(editAccount.Username);
+    }
+}
