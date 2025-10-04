@@ -1,0 +1,20 @@
+<Dialog Width="450">
+    <DialogContent>
+        <div style="white-space: pre-wrap;">
+            @Message
+        </div>
+    </DialogContent>
+
+    <DialogActions>
+        <button class="btn" @onclick="DialogInstance.Cancel">CANCEL</button>
+        <button class="btn btn-outlined" @onclick="DialogInstance.Close">YES</button>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [CascadingParameter]
+    public required DialogInstance DialogInstance { get; set; }
+
+    [Parameter]
+    public string Message { get; set; } = "Are you sure?";
+}

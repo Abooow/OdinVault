@@ -2,7 +2,124 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-<p><a href="/css-test">CSS test</a></p>
+<style>
+    .account {
+        display: grid;
+        grid-template-columns: auto auto 1fr 1fr 1fr 1fr auto;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
 
-Welcome to your new app.
+    .account img {
+        width: 20px;
+        height: 20px;
+    }
+</style>
+
+<div class="main-content my-4">
+    <h1 class="mb-5">OdinVault</h1>
+    <button class="btn" @onclick="AddNewAccount">Add New Account</button>
+    
+    <div class="d-flex flex-column gap-2 mt-4">
+        @foreach (var account in accounts)
+        {
+            <div @key="account" class="account py-2 px-4 rounded-md bg-light">
+                <input type="checkbox" class="mr-2" />
+                
+                <img src="@GetDomainLogo(account)" alt="Logo" />
+
+                @if (IsSite(account))
+                {
+                    <div>
+                        <p class="text-small text-dark">Site</p>
+                        <a href="@GetSiteUrl(account)" rel="noopener noreferrer nofollow" target="_blank">@GetSiteName(account)</a>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <p class="text-small text-dark">App</p>
+                        <p>@account.Domain</p>
+                    </div>
+                }
+
+                <div>
+                    <p class="text-small text-dark">Username/Email</p>
+                    <p>@account.Username</p>
+                </div>
+
+                <div>
+                    <p class="text-small text-dark">Password</p>
+                    <p>@account.Password</p>
+                </div>
+
+                <div>
+                    <p class="text-small text-dark">Created</p>
+                    <p>@account.DateCreated</p>
+                </div>
+
+                <button class="btn-icon"><Icon Path="@Icons.Edit" Size="20" Color="var(--color-text-main)" /></button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public required DialogProvider DialogProvider { get; set; }
+    
+    private readonly List<AccountRecord> accounts = [
+        new () { Domain = "https://app.closingdealz.io/dashboard", Username = "daniel@gmail.com", Password = "password1" },
+        new () { Domain = "RuneScape", Username = "Froggy", Password = "password2" }
+    ];
+
+    private async Task AddNewAccount()
+    {
+        var result = await DialogProvider.Show<CreateAccountDialog>("Create Account", new DialogOptions() { DisableBackdropClick = true }).Result;
+        if (result.IsCancel)
+            return;
+        
+        accounts.Add((AccountRecord)result.Data!);
+    }
+
+    private static bool IsSite(AccountRecord account)
+    {
+        return Uri.TryCreate(GetSiteUrl(account), UriKind.Absolute, out _);
+    }
+    
+    private static string GetSiteUrl(AccountRecord account)
+    {
+        return (account.Domain.Contains('.'), account.Domain.StartsWith("http://") || account.Domain.StartsWith("https://")) switch
+        {
+            (true, true) => account.Domain,
+            (true, false) => $"https://{account.Domain}",
+            (false, true) => account.Domain,
+            (false, false) => account.Domain,
+        };
+    }
+    
+    private static string GetSiteName(AccountRecord account)
+    {
+        var domain = GetSiteUrl(account);
+        if (!Uri.TryCreate(domain, UriKind.Absolute, out var uri))
+            return account.Domain;
+        
+        return uri.Host;
+    }
+    
+    private string GetDomainLogo(AccountRecord account)
+    {
+        if (!string.IsNullOrWhiteSpace(account.LogoUrl))
+            return account.LogoUrl;
+
+        if (string.IsNullOrWhiteSpace(account.Domain))
+            return "default_logo.png";
+
+        var url = GetSiteUrl(account);
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return "default_logo.png";
+        
+        return $"{uri.Scheme}://{uri.Host}/favicon.ico";
+    }
+}
