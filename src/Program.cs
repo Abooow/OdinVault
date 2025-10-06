@@ -10,7 +10,7 @@ builder.Services.AddRazorComponents()
 var options = builder.Configuration.GetSection("OdinVault").Get<OdinVaultOptions>() ?? new OdinVaultOptions();
 builder.Services.AddSingleton(options);
 
-builder.Services.AddSingleton<AccountManager>();
+builder.Services.AddScoped<AccountManager>();
 
 var app = builder.Build();
 
