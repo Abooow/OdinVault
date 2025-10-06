@@ -55,11 +55,31 @@
         
         @if (AccountManager.IsSignedIn())
         {
-            <div class="ml-auto align-self-end">
-                <p class="text-small text-dark">Signed in as</p>
-                <p>@Path.GetFileNameWithoutExtension(AccountManager.GetUserPath())</p>
+            <div class="inline-dialog-wrapper align-self-end ml-auto">
+                <button class="btn-icon" @onclick="() => profileDropDownVisible = !profileDropDownVisible">
+                    <Icon Path="@Icons.Account" Size="24" Color="var(--color-text-main)" />
+                </button>
+
+                <DialogBase @bind-IsVisible="profileDropDownVisible">
+                    <div class="absolute bottom-right bg-light pa-2 border border-lightest rounded-md shadow-md" style="z-index: 100; width: 200px;">
+                        <div class="d-flex mb-2">
+                            <div>
+                                <p class="text-small text-dark">Signed in as</p>
+                                <p class="text-ellipsis" style="max-width: 150px;">@Path.GetFileNameWithoutExtension(AccountManager.GetFilePath())</p>
+                            </div>
+                            
+                            <button class="btn-icon ml-auto" @onclick="EditFile"><Icon Path="@Icons.Edit" Size="18" Color="var(--color-text-main)" /></button>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="text-small text-dark">Path</p>
+                            <p class="overflow-auto" style="white-space: nowrap; scrollbar-width: none;">@AccountManager.GetFilePath()</p>
+                        </div>
+                        
+                        <button class="btn btn-outlined btn-error w-100" @onclick="SignOut">Sign Out</button>
+                    </div>
+                </DialogBase>
             </div>
-            <button class="btn-icon align-self-end" @onclick="SignOut" title="Sign Out" style="margin-bottom: 1px;"><Icon Path="@Icons.Delete" Size="16" Color="var(--color-error)" /></button>
         }
     </div>
 
@@ -129,7 +149,8 @@
     
     private List<AccountRecord> accounts = [];
     private readonly HashSet<AccountRecord> selectedAccounts = [];
-
+    private bool profileDropDownVisible;
+    
     protected override async Task OnInitializedAsync()
     {
         if (!AccountManager.IsSignedIn())
@@ -152,6 +173,11 @@
     {
         AccountManager.SignOut();
         NavigationManager.NavigateTo("/auth/sign-in", forceLoad: true);
+    }
+    
+    private async Task EditFile()
+    {
+        await DialogProvider.Show<EditFileDialog>("Edit File", new DialogOptions() { DisableBackdropClick = true }).Result;
     }
     
     private async Task AddNewAccount()

@@ -4,9 +4,9 @@ namespace OdinVault;
 
 public sealed class AccountManager(OdinVaultOptions options)
 {
-    private AccountUser? user;
+    private FileUser? user;
 
-    public string? GetUserPath()
+    public string? GetFilePath()
     {
         return user?.Path;
     }
@@ -27,6 +27,7 @@ public sealed class AccountManager(OdinVaultOptions options)
     
     public async Task<Result> SignInAsync(string path, string password)
     {
+        path = Path.GetFullPath(path);
         if (!File.Exists(path))
             return Result.Fail("File doesn't exist.");
         
@@ -43,7 +44,7 @@ public sealed class AccountManager(OdinVaultOptions options)
             return Result.Fail("Invalid password or file contents, try another password.");
         }
         
-        user = new AccountUser(path, passwordHash);
+        user = new FileUser(path, passwordHash);
         return Result.Success();
     }
 
@@ -81,6 +82,90 @@ public sealed class AccountManager(OdinVaultOptions options)
         }
     }
 
+    public Task<Result> UpdateFileSanitizedAsync(string? newPath, string? currentPassword, string? newPassword)
+    {
+        if (!string.IsNullOrWhiteSpace(newPath))
+        {
+            if (newPath.Contains('/') || newPath.Contains('\\'))
+                return Task.FromResult(Result.Fail("File can not contain '/' or '\\'"));
+            
+            if (!string.IsNullOrWhiteSpace(options.VaultPath))
+                Directory.CreateDirectory(options.VaultPath);
+            
+            newPath = Path.Combine(options.VaultPath ?? "", newPath + ".ov");
+        }
+        
+        return UpdateFileAsync(newPath, currentPassword, newPassword);
+    }
+    
+    public async Task<Result> UpdateFileAsync(string? newPath, string? currentPassword, string? newPassword)
+    {
+        if (user is null)
+            return Result.Fail("You are not signed in.");
+
+        if (!string.IsNullOrEmpty(newPassword) && string.IsNullOrEmpty(currentPassword))
+            return Result.Fail("You need to provide the current and new password to change password.");
+
+        if (newPath is null && currentPassword is null && newPassword is null)
+            return Result.Success();
+        
+        string path = user.Path;
+        string password = user.Password;
+        
+        // Change password.
+        if (!string.IsNullOrEmpty(newPassword) && !string.IsNullOrEmpty(currentPassword))
+        {
+            var currentPasswordHash = Encryption.HashPassword(currentPassword);
+            if (user.Password != currentPasswordHash)
+                return Result.Fail("Current password is not correct.");
+            
+            try
+            {
+                _ = await ReadFileAsync(path, currentPasswordHash);
+            }
+            catch
+            {
+                return Result.Fail("Current password is not correct.");
+            }
+            
+            password = Encryption.HashPassword(newPassword);
+        }
+        
+        // Change path.
+        bool changePath = false;
+        var newFullPath = !string.IsNullOrEmpty(newPath) ? Path.GetFullPath(newPath) : null;
+        if (newFullPath is not null && user.Path != newFullPath)
+        {
+            if (File.Exists(newFullPath))
+                return Result.Fail("File already exists, try another name.");
+            
+            path = newFullPath;
+            changePath = true;
+        }
+        
+        // Update.
+        string? contents;
+        try
+        {
+            contents = await ReadFileAsync(user.Path, user.Password);
+        }
+        catch
+        {
+            return Result.Fail("Failed to read the file.");
+        }
+        
+        // Save new file/password.
+        await WriteFileAsync(path, contents, password);
+
+        // Remove old.
+        if (changePath && File.Exists(user.Path))
+            File.Delete(user.Path);
+        
+        user = new FileUser(path, password);
+        
+        return Result.Success();
+    }
+    
     public async Task<Result<List<AccountRecord>>> GetAccountsAsync()
     {
         if (user is null)
@@ -130,4 +215,4 @@ public sealed class AccountManager(OdinVaultOptions options)
     }
 }
 
-public sealed record AccountUser(string Path, string Password);
+public sealed record FileUser(string Path, string Password);

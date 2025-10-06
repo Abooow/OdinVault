@@ -1,4 +1,4 @@
-<svg viewBox="0 0 24 24" fill="none" style="width: 1em; height: 1em; display: inline-block; fill: @Color; font-size: @(Size)px;" color="@Color" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 24 24" fill="none" class="@Class" style="width: 1em; height: 1em; display: inline-block; fill: @Color; font-size: @(Size)px; @Style" color="@Color" xmlns="http://www.w3.org/2000/svg">
     @((MarkupString)Path)
 </svg>
 
@@ -11,4 +11,10 @@
 
     [Parameter]
     public int Size { get; set; } = 24;
+    
+    [Parameter]
+    public string? Class { get; set; }
+    
+    [Parameter]
+    public string? Style { get; set; }
 }
