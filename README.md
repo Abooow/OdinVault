@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/logo.png" alt="Odin Vault logo" width="80" />
+</p>
+
 # Odin Vault
 A self-hosted password/account manager built with ASP.NET Core and Blazor Server.
 
@@ -5,6 +9,8 @@ A self-hosted password/account manager built with ASP.NET Core and Blazor Server
 > This is a personal project, built for learning purposes and not intended for production use.
 
 ___
+
+![Screenshot](images/screenshot.png)
 
 ## What it does
 Odin Vault lets you store and manage account credentials locally. You can save details like site URLs, usernames, passwords, and notes - all encrypted and stored in a single file on your machine.
